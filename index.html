@@ -3,36 +3,49 @@
 <head>
     <title>Spinning Wheel</title>
     <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; /* Prevent both horizontal and vertical scrollbars */
+            background-color: #fbf1e5;
+            font-family: Arial, sans-serif;
+        }
+        
         body {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #fbf1e5;
-            font-family: Arial, sans-serif;
-            position: relative; /* For absolute positioning of side images */
-            overflow-x: hidden; /* Prevent horizontal scrollbar */
+            position: relative;
         }
         
-        /* Left side vertical image */
-        .left-image {
+        /* Left side image container */
+        .left-image-container {
             position: absolute;
-            left: 1in; /* Position about 1 inch from left */
+            left: 1in;
             top: 0;
-            height: 100%; /* Full height of viewport */
-            z-index: 0; /* Behind other content */
+            bottom: 0;
+            width: 50px; /* Fixed width - adjust as needed */
+            overflow: hidden; /* Hide any potential gaps */
+            z-index: 0;
         }
         
-        /* Right side image - moved to bottom right and resized to 15% */
+        /* Style for each left side image */
+        .left-image {
+            width: 100%;
+            height: auto; /* Let height be determined by aspect ratio */
+            display: block; /* Remove any gaps between images */
+        }
+        
+        /* Right side image */
         .right-image {
             position: absolute;
-            right: 1in; /* Position about 1 inch from right */
-            bottom: 1in; /* Position 1 inch from bottom */
-            z-index: 0; /* Behind other content */
-            width: 15%; /* Resized to 15% of original width */
-            height: auto; /* Maintain aspect ratio */
+            right: 1in;
+            bottom: 1in;
+            z-index: 0;
+            width: 15%;
+            height: auto;
         }
         
         /* Container to center main content */
@@ -40,15 +53,17 @@
             position: relative;
             z-index: 1;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            align-items: center; /* Center vertically */
+            justify-content: center; /* Center horizontally */
         }
         
+        /* Make wheel container responsive */
         .wheel-container {
             position: relative;
             width: 600px;
             height: 600px;
-            margin-bottom: 20px;
+            max-width: 90vw; /* Prevent overflow on small screens */
+            max-height: 90vw; /* Keep aspect ratio */
         }
         
         .wheel {
@@ -58,7 +73,12 @@
             filter: drop-shadow(0px 10px 8px rgba(0, 0, 0, 0.3));
         }
         
+        /* Repositioned spin button */
         .spin-button {
+            position: absolute;
+            right: 1in; /* Align with right side image */
+            top: 50%; /* Center vertically */
+            transform: translateY(-50%); /* Ensure perfect vertical centering */
             padding: 12px 25px;
             font-size: 22px;
             background-color: #4CAF50;
@@ -66,9 +86,9 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin-top: 20px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
+            z-index: 5; /* Ensure it's above other elements */
         }
         
         .spin-button:hover {
@@ -83,7 +103,7 @@
         }
         
         .spin-button.ready {
-            transform: scale(1.05);
+            transform: translateY(-50%) scale(1.05);
             box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2);
         }
         
@@ -136,14 +156,48 @@
         .debug-info.show {
             opacity: 1;
         }
+        
+        /* Responsive adjustments */
+        @media screen and (max-height: 700px) {
+            .wheel-container {
+                width: 500px;
+                height: 500px;
+            }
+            
+            .pointer {
+                width: 40px;
+                height: 40px;
+                left: -30px;
+            }
+        }
+        
+        @media screen and (max-height: 600px) {
+            .wheel-container {
+                width: 400px;
+                height: 400px;
+            }
+            
+            .pointer {
+                width: 35px;
+                height: 35px;
+                left: -25px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Left side vertical image -->
-    <img src="FunctionalEvent-Border Vertical.png" class="left-image" alt="">
+    <!-- Left side vertical images in a container -->
+    <div class="left-image-container">
+        <img src="FunctionalEvent-Border Vertical.png" class="left-image" alt="">
+        <img src="FunctionalEvent-Border Vertical.png" class="left-image" alt="">
+        <!-- Additional images will be added by JavaScript if needed -->
+    </div>
     
-    <!-- Right side image, resized to 15% and moved to bottom right -->
+    <!-- Right side image -->
     <img src="CartSmarts.png" class="right-image" alt="">
+    
+    <!-- Moved spin button outside of main-content -->
+    <button class="spin-button ready" id="spinButton">SPIN</button>
     
     <!-- Main content wrapper -->
     <div class="main-content">
@@ -151,8 +205,6 @@
             <img src="IC Arrow Up.png" class="pointer" id="pointer">
             <img src="Trivia Spinner1.png" class="wheel" id="wheel">
         </div>
-        
-        <button class="spin-button ready" id="spinButton">SPIN</button>
     </div>
     
     <!-- Debug info panel with white text -->
@@ -174,6 +226,40 @@
             const spinButton = document.getElementById('spinButton');
             const audioMessage = document.getElementById('audioMessage');
             const debugInfo = document.getElementById('debugInfo');
+            const leftImageContainer = document.querySelector('.left-image-container');
+            const leftImages = document.querySelectorAll('.left-image');
+            
+            // Ensure left image fills the height by adding more copies if needed
+            function updateLeftImage() {
+                if (leftImages.length > 0) {
+                    // Get the height of the first image
+                    const firstImageHeight = leftImages[0].offsetHeight;
+                    // Get the container height
+                    const containerHeight = leftImageContainer.offsetHeight;
+                    
+                    // Calculate how many images we need
+                    const neededImages = Math.ceil(containerHeight / firstImageHeight);
+                    
+                    // Check if we need to add more images
+                    const currentImages = leftImageContainer.querySelectorAll('.left-image').length;
+                    
+                    if (neededImages > currentImages) {
+                        // Add more images
+                        for (let i = currentImages; i < neededImages; i++) {
+                            const newImage = document.createElement('img');
+                            newImage.src = "FunctionalEvent-Border Vertical.png";
+                            newImage.className = "left-image";
+                            newImage.alt = "";
+                            leftImageContainer.appendChild(newImage);
+                        }
+                        console.log(`Added ${neededImages - currentImages} more images to fill container.`);
+                    }
+                }
+            }
+            
+            // Run on page load and when window resizes
+            window.addEventListener('load', updateLeftImage);
+            window.addEventListener('resize', updateLeftImage);
             
             // Wheel configuration - 16 equal sections
             const TOTAL_SECTIONS = 16;
