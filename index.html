@@ -12,6 +12,36 @@
             margin: 0;
             background-color: #fbf1e5;
             font-family: Arial, sans-serif;
+            position: relative; /* For absolute positioning of side images */
+            overflow-x: hidden; /* Prevent horizontal scrollbar */
+        }
+        
+        /* Left side vertical image */
+        .left-image {
+            position: absolute;
+            left: 1in; /* Position about 1 inch from left */
+            top: 0;
+            height: 100%; /* Full height of viewport */
+            z-index: 0; /* Behind other content */
+        }
+        
+        /* Right side image - moved to bottom right and resized to 15% */
+        .right-image {
+            position: absolute;
+            right: 1in; /* Position about 1 inch from right */
+            bottom: 1in; /* Position 1 inch from bottom */
+            z-index: 0; /* Behind other content */
+            width: 15%; /* Resized to 15% of original width */
+            height: auto; /* Maintain aspect ratio */
+        }
+        
+        /* Container to center main content */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
         .wheel-container {
@@ -79,27 +109,28 @@
             font-size: 12px;
             opacity: 0;
             transition: opacity 0.5s;
+            z-index: 10;
         }
         
         .audio-message.show {
             opacity: 1;
         }
         
-        /* Updated debug info panel with white text */
         .debug-info {
             position: fixed;
             top: 10px;
             right: 10px;
-            background-color: #fbf1e5; /* Match background color */
-            color: #ffffff; /* White text - hard to read */
+            background-color: #fbf1e5;
+            color: #ffffff;
             padding: 10px 15px;
             border-radius: 6px;
             font-size: 14px;
             font-weight: normal;
             opacity: 0;
             transition: opacity 0.3s;
-            border: none; /* No border for even less visibility */
-            box-shadow: none; /* No shadow */
+            border: none;
+            box-shadow: none;
+            z-index: 10;
         }
         
         .debug-info.show {
@@ -108,12 +139,21 @@
     </style>
 </head>
 <body>
-    <div class="wheel-container">
-        <img src="IC Arrow Up.png" class="pointer" id="pointer">
-        <img src="Trivia Spinner1.png" class="wheel" id="wheel">
-    </div>
+    <!-- Left side vertical image -->
+    <img src="FunctionalEvent-Border Vertical.png" class="left-image" alt="">
     
-    <button class="spin-button ready" id="spinButton">SPIN</button>
+    <!-- Right side image, resized to 15% and moved to bottom right -->
+    <img src="CartSmarts.png" class="right-image" alt="">
+    
+    <!-- Main content wrapper -->
+    <div class="main-content">
+        <div class="wheel-container">
+            <img src="IC Arrow Up.png" class="pointer" id="pointer">
+            <img src="Trivia Spinner1.png" class="wheel" id="wheel">
+        </div>
+        
+        <button class="spin-button ready" id="spinButton">SPIN</button>
+    </div>
     
     <!-- Debug info panel with white text -->
     <div id="debugInfo" class="debug-info"></div>
